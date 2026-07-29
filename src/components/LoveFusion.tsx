@@ -10,8 +10,14 @@ const logoFont = Hachi_Maru_Pop({ weight: '400', subsets: ['latin'] });
 // right when they'd otherwise overlap - neither ever renders "in front of"
 // the other. The flash on the icon row is a bonus bloom on top of that, not
 // the only thing hiding the seam. Plays once, on mount, then holds.
+// linear (not easeInOut): with multi-point keyframes, easeInOut is applied
+// per-segment, so it decelerates to zero velocity at every one of the 6
+// intermediate checkpoints - technically continuous but reads as jerky
+// "steps" rather than one fluid motion. Linear + the non-uniform spacing
+// of `times` (tight around the crossing, wide at the ends) shapes the
+// speed instead, without ever fully stopping mid-flight.
 const times = [0, 0.25, 0.45, 0.58, 0.7, 0.85, 1];
-const transition = { duration: 1.8, times, ease: 'easeInOut' as const };
+const transition = { duration: 1.8, times, ease: 'linear' as const };
 const willChange = { willChange: 'transform, opacity' } as const;
 
 export default function LoveFusion({ className = '' }: { className?: string }) {
