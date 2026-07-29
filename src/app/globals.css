@@ -4,9 +4,6 @@
 
 @layer base {
   :root {
-    --font-inter: 'Inter', system-ui, sans-serif;
-    --font-poppins: 'Poppins', system-ui, sans-serif;
-
     /* Matches the app's existing gray-50 page backdrop; cards stay pure white */
     --background: 210 20% 98%;
     --foreground: 0 0% 3.9%;

@@ -1,14 +1,25 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Poppins } from 'next/font/google';
+import localFont from 'next/font/local';
 import Footer from '@/components/Footer';
 import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '600', '700', '800'],
-  variable: '--font-poppins',
+const sans = localFont({
+  variable: '--font-sans',
+  src: [
+    { path: '../fonts/InstrumentSans-Regular.ttf', weight: '400', style: 'normal' },
+    { path: '../fonts/InstrumentSans-Italic.ttf', weight: '400', style: 'italic' },
+    { path: '../fonts/InstrumentSans-Bold.ttf', weight: '700', style: 'normal' },
+    { path: '../fonts/InstrumentSans-BoldItalic.ttf', weight: '700', style: 'italic' },
+  ],
+});
+
+const display = localFont({
+  variable: '--font-display',
+  src: [
+    { path: '../fonts/BricolageGrotesque-Regular.ttf', weight: '400', style: 'normal' },
+    { path: '../fonts/BricolageGrotesque-Bold.ttf', weight: '700', style: 'normal' },
+  ],
 });
 
 export const metadata: Metadata = {
@@ -35,7 +46,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
+    <html lang="en" className={`${sans.variable} ${display.variable}`}>
       <body className="font-sans bg-background text-foreground min-h-screen flex flex-col">
         <div className="flex-1">{children}</div>
         <Footer />
