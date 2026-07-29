@@ -4,10 +4,23 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import QRCode from 'qrcode';
+import { toast } from 'sonner';
 import { themes, getGradientStyle, formatSlotDate, type Theme } from '@/lib/themes';
 import { keyFromHash, decryptField, decryptOptional } from '@/lib/crypto-client';
-import Card from '@/components/ui/Card';
-import { buttonVariants } from '@/components/ui/Button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button, buttonVariants } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import CalendarButtons from '@/components/CalendarButtons';
 import type { Proposal, ActivityOption, TimeSlot, Response } from '@prisma/client';
 
@@ -46,8 +59,6 @@ export default function ManageClient({
   manageUrl: string;
 }) {
   const router = useRouter();
-  const [copiedPublic, setCopiedPublic] = useState(false);
-  const [copiedManage, setCopiedManage] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showQr, setShowQr] = useState(false);
@@ -122,10 +133,9 @@ export default function ManageClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showQr, hash]);
 
-  function copy(url: string, which: 'public' | 'manage') {
+  function copy(url: string) {
     navigator.clipboard.writeText(url);
-    if (which === 'public') { setCopiedPublic(true); setTimeout(() => setCopiedPublic(false), 2000); }
-    else { setCopiedManage(true); setTimeout(() => setCopiedManage(false), 2000); }
+    toast.success('Link copied');
   }
 
   async function handlePublish() {
@@ -136,7 +146,6 @@ export default function ManageClient({
   }
 
   async function handleDelete() {
-    if (!confirm('Delete this proposal? This removes all data including the response.')) return;
     setDeleting(true);
     await fetch(`/api/manage/${token}`, { method: 'DELETE' });
     router.push('/');
@@ -155,13 +164,13 @@ export default function ManageClient({
 
   if (keyMissing) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 text-center max-w-md w-full border border-gray-100">
+      <div className="min-h-[100dvh] bg-background flex items-center justify-center px-4">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 text-center max-w-md w-full border border-border">
           <div className="text-5xl mb-4">🔒</div>
-          <h1 className="font-display text-2xl font-extrabold text-gray-900 mb-2">
+          <h1 className="font-display text-2xl font-extrabold text-foreground mb-2">
             This link looks incomplete
           </h1>
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             Make sure you copied the whole link, including everything after the “#”.
           </p>
         </div>
@@ -171,23 +180,23 @@ export default function ManageClient({
 
   if (!decrypted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-[100dvh] bg-background flex items-center justify-center px-4">
         <div className="text-6xl animate-pulse">💌</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-[100dvh] bg-background">
       {/* Header banner */}
       <div className={gradStyle.className ?? ''} style={gradStyle.style}>
-        <div className="max-w-3xl mx-auto px-4 py-8 text-white">
+        <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8 text-white">
           <div className="flex items-center gap-3 mb-3">
             <Link href="/" className="text-white/70 hover:text-white text-sm transition-colors">💌 lovelope.app</Link>
             <span className="text-white/40">›</span>
             <span className="text-sm font-semibold">Manage proposal</span>
           </div>
-          <h1 className="font-display text-xl sm:text-2xl font-extrabold mb-1">{decrypted.title}</h1>
+          <h1 className="font-display text-xl sm:text-2xl font-extrabold mb-1 text-balance">{decrypted.title}</h1>
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-white/80 text-sm">For <strong>{decrypted.recipientName}</strong></span>
             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${statusBadge[proposal.status]} bg-white/20 text-white`}>
@@ -201,16 +210,16 @@ export default function ManageClient({
         {/* Response card */}
         {decrypted.response ? (
           <Card>
-            <h2 className="font-display font-bold text-gray-900 mb-4">Response received</h2>
+            <h2 className="font-display font-bold text-foreground mb-4">Response received</h2>
             <div className="flex items-center gap-4">
               <span className="text-5xl">
                 {answerEmoji[decrypted.response.answer as keyof typeof answerEmoji]}
               </span>
               <div>
-                <p className="font-display text-2xl font-extrabold text-gray-900">
+                <p className="font-display text-2xl font-extrabold text-foreground">
                   {answerLabel[decrypted.response.answer as keyof typeof answerLabel]}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   {new Date(proposal.response!.respondedAt).toLocaleDateString('en-US', {
                     month: 'long', day: 'numeric', year: 'numeric',
                   })}
@@ -218,22 +227,22 @@ export default function ManageClient({
               </div>
             </div>
             {selectedActivity && (
-              <div className="mt-4 bg-gray-50 rounded-xl p-4">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Chose</p>
-                <p className="font-semibold text-gray-900">
+              <div className="mt-4 bg-secondary rounded-xl p-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Chose</p>
+                <p className="font-semibold text-foreground">
                   {selectedActivity.emoji} {selectedActivity.title}
                 </p>
                 {selectedSlot && (
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     🗓 {formatSlotDate(selectedSlot.startsAt, selectedSlot.label)}
                   </p>
                 )}
               </div>
             )}
             {decrypted.response.note && (
-              <div className="mt-3 bg-gray-50 rounded-xl p-4">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Note</p>
-                <p className="text-gray-700 italic">&ldquo;{decrypted.response.note}&rdquo;</p>
+              <div className="mt-3 bg-secondary rounded-xl p-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Note</p>
+                <p className="text-foreground/90 italic">&ldquo;{decrypted.response.note}&rdquo;</p>
               </div>
             )}
             {calendarSlot && (
@@ -247,8 +256,8 @@ export default function ManageClient({
         ) : (
           <Card className="text-center">
             <div className="text-4xl mb-2">⏳</div>
-            <p className="font-semibold text-gray-700">Waiting for a response</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="font-semibold text-foreground">Waiting for a response</p>
+            <p className="text-sm text-muted-foreground mt-1">
               Share the public link with {decrypted.recipientName} to get started.
             </p>
           </Card>
@@ -257,10 +266,10 @@ export default function ManageClient({
         {/* Links + QR */}
         <Card className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display font-bold text-gray-900">Your links</h2>
+            <h2 className="font-display font-bold text-foreground">Your links</h2>
             <button
               onClick={() => setShowQr((v) => !v)}
-              className="text-xs font-semibold text-gray-500 hover:text-pink-500 transition-colors flex items-center gap-1"
+              className="text-xs font-semibold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 py-1"
             >
               📱 {showQr ? 'Hide QR' : 'Show QR code'}
             </button>
@@ -275,36 +284,30 @@ export default function ManageClient({
                   alt="QR code for public proposal link"
                   width={200}
                   height={200}
-                  className="rounded-xl border border-gray-100 shadow-sm"
+                  className="rounded-xl border border-border shadow-sm"
                 />
               ) : (
-                <div className="w-[200px] h-[200px] rounded-xl border border-gray-100 bg-gray-50 animate-pulse" />
+                <div className="w-[200px] h-[200px] rounded-xl border border-border bg-secondary animate-pulse" />
               )}
-              <p className="text-xs text-gray-400">Scan to open the proposal</p>
+              <p className="text-xs text-muted-foreground">Scan to open the proposal</p>
             </div>
           )}
 
           {([
-            { emoji: '📤', label: 'Public link (share with them)', url: fullPublicUrl, which: 'public' as const, copied: copiedPublic },
-            { emoji: '🔒', label: 'Management link (keep private)', url: fullManageUrl, which: 'manage' as const, copied: copiedManage },
-          ] as const).map(({ emoji, label, url, which, copied }) => (
+            { emoji: '📤', label: 'Public link (share with them)', url: fullPublicUrl, which: 'public' as const },
+            { emoji: '🔒', label: 'Management link (keep private)', url: fullManageUrl, which: 'manage' as const },
+          ] as const).map(({ emoji, label, url, which }) => (
             <div key={which}>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{emoji} {label}</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">{emoji} {label}</p>
               <div className="flex gap-2">
-                <input readOnly value={url} aria-label={label}
-                  className="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-600 min-w-0
-                             focus:border-pink-400 focus:ring-2 focus:ring-pink-100 outline-none transition" />
-                <button onClick={() => copy(url, which)}
-                  className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors
-                              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 ${
-                    copied ? 'bg-green-100 text-green-700' : 'bg-gray-100 hover:bg-gray-200'
-                  }`}>
-                  <span aria-live="polite">{copied ? '✓' : 'Copy'}</span>
-                </button>
+                <Input readOnly value={url} aria-label={label} className="h-11 flex-1 text-xs bg-secondary min-w-0" />
+                <Button type="button" variant="secondary" className="shrink-0 h-11" onClick={() => copy(url)}>
+                  Copy
+                </Button>
               </div>
               {which === 'public' && (
                 <a href={url} target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-pink-600 hover:underline mt-1 block">
+                  className="text-xs text-primary hover:underline mt-1 block py-0.5">
                   Preview →
                 </a>
               )}
@@ -314,16 +317,16 @@ export default function ManageClient({
 
         {/* Activities summary */}
         <Card>
-          <h2 className="font-display font-bold text-gray-900 mb-4">Activities ({decrypted.activities.length})</h2>
+          <h2 className="font-display font-bold text-foreground mb-4">Activities ({decrypted.activities.length})</h2>
           <div className="space-y-2">
             {decrypted.activities.map((a) => (
               <div key={a.id} className={`rounded-xl border p-3 flex items-start gap-3 ${
-                proposal.response?.selectedActivityId === a.id ? 'border-green-300 bg-green-50' : 'border-gray-100'
+                proposal.response?.selectedActivityId === a.id ? 'border-green-300 bg-green-50' : 'border-border'
               }`}>
                 <span className="text-xl shrink-0">{a.emoji}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm">{a.title}</p>
-                  {a.description && <p className="text-xs text-gray-500">{a.description}</p>}
+                  <p className="font-semibold text-foreground text-sm">{a.title}</p>
+                  {a.description && <p className="text-xs text-muted-foreground">{a.description}</p>}
                   {a.slots.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {a.slots.map((s) => (
@@ -331,7 +334,7 @@ export default function ManageClient({
                           className={`text-xs px-2 py-0.5 rounded-lg font-medium ${
                             proposal.response?.selectedTimeSlotId === s.id
                               ? 'bg-green-200 text-green-800'
-                              : 'bg-gray-100 text-gray-600'
+                              : 'bg-secondary text-muted-foreground'
                           }`}>
                           {formatSlotDate(s.startsAt, s.label)}
                         </span>
@@ -350,20 +353,40 @@ export default function ManageClient({
         {/* Actions */}
         <Card className="space-y-3">
           {proposal.status === 'draft' && (
-            <button onClick={handlePublish} disabled={publishing}
-              className={buttonVariants({ size: 'lg', className: 'w-full' })}>
+            <Button onClick={handlePublish} disabled={publishing} size="lg" className="w-full">
               {publishing ? 'Publishing…' : '📤 Publish & share'}
-            </button>
+            </Button>
           )}
-          <button onClick={handleDelete} disabled={deleting}
-            className={buttonVariants({ variant: 'danger', size: 'lg', className: 'w-full' })}>
-            {deleting ? 'Deleting…' : '🗑 Delete proposal & all data'}
-          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="lg" className="w-full" disabled={deleting}>
+                {deleting ? 'Deleting…' : '🗑 Delete proposal & all data'}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this proposal?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This removes all data, including {decrypted.recipientName}&apos;s response, permanently.
+                  This can&apos;t be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => void handleDelete()}
+                  className={buttonVariants({ variant: 'destructive' })}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </Card>
 
-        <p className="text-center text-xs text-gray-400 pb-4">
+        <p className="text-center text-xs text-muted-foreground pb-4">
           Want to ask someone else out?{' '}
-          <Link href="/create" className="text-pink-600 font-semibold hover:underline">Create a new proposal →</Link>
+          <Link href="/create" className="text-primary font-semibold hover:underline">Create a new proposal →</Link>
         </p>
       </div>
     </div>

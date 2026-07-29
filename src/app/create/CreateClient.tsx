@@ -2,8 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import ProposalForm, { type ProposalFormData } from '@/components/ProposalForm';
-import Card from '@/components/ui/Card';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { generateKey, encryptField, encryptOptional } from '@/lib/crypto-client';
 
 interface Links {
@@ -48,8 +51,6 @@ async function encryptPayload(key: string, data: ProposalFormData) {
 export default function CreateClient() {
   const [links, setLinks] = useState<Links | null>(null);
   const [error, setError] = useState('');
-  const [copiedPublic, setCopiedPublic] = useState(false);
-  const [copiedManage, setCopiedManage] = useState(false);
 
   async function handleSubmit(data: ProposalFormData, _publish: boolean) {
     setError('');
@@ -71,19 +72,18 @@ export default function CreateClient() {
     });
   }
 
-  function copyLink(url: string, which: 'public' | 'manage') {
+  function copyLink(url: string) {
     navigator.clipboard.writeText(url);
-    if (which === 'public') { setCopiedPublic(true); setTimeout(() => setCopiedPublic(false), 2000); }
-    else { setCopiedManage(true); setTimeout(() => setCopiedManage(false), 2000); }
+    toast.success('Link copied');
   }
 
   if (links) {
     return (
-      <Card className="rounded-3xl shadow-2xl p-8 text-center space-y-6">
+      <Card className="rounded-3xl shadow-2xl p-6 sm:p-8 text-center space-y-6">
         <div className="text-5xl">🎉</div>
         <div>
-          <h2 className="font-display text-2xl font-extrabold text-gray-900">Your proposal is ready!</h2>
-          <p className="text-gray-500 mt-1">Share the first link, keep the second one private.</p>
+          <h2 className="font-display text-2xl font-extrabold text-foreground">Your proposal is ready!</h2>
+          <p className="text-muted-foreground mt-1">Share the first link, keep the second one private.</p>
         </div>
 
         <div className="text-left space-y-4">
@@ -92,8 +92,7 @@ export default function CreateClient() {
             label="Share with them"
             sublabel="Send this link to the person you're asking out"
             url={links.publicUrl}
-            copied={copiedPublic}
-            onCopy={() => copyLink(links.publicUrl, 'public')}
+            onCopy={() => copyLink(links.publicUrl)}
             highlight
           />
           <LinkBox
@@ -101,14 +100,13 @@ export default function CreateClient() {
             label="Your private management link"
             sublabel="Bookmark this: it lets you see their response and delete the proposal"
             url={links.manageUrl}
-            copied={copiedManage}
-            onCopy={() => copyLink(links.manageUrl, 'manage')}
+            onCopy={() => copyLink(links.manageUrl)}
           />
         </div>
 
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-muted-foreground">
           Want to create another one?{' '}
-          <Link href="/create" className="text-pink-600 font-semibold hover:underline">
+          <Link href="/create" className="text-primary font-semibold hover:underline">
             Make a new proposal →
           </Link>
         </p>
@@ -120,38 +118,31 @@ export default function CreateClient() {
 }
 
 function LinkBox({
-  emoji, label, sublabel, url, copied, onCopy, highlight,
+  emoji, label, sublabel, url, onCopy, highlight,
 }: {
   emoji: string; label: string; sublabel: string; url: string;
-  copied: boolean; onCopy: () => void; highlight?: boolean;
+  onCopy: () => void; highlight?: boolean;
 }) {
   return (
-    <div className={`rounded-2xl p-4 border-2 ${highlight ? 'border-pink-300 bg-pink-50' : 'border-gray-100 bg-gray-50'}`}>
+    <div className={`rounded-2xl p-4 border-2 ${highlight ? 'border-primary/40 bg-accent' : 'border-border bg-secondary'}`}>
       <div className="flex items-start gap-3 mb-3">
         <span className="text-2xl">{emoji}</span>
         <div>
-          <p className="font-semibold text-gray-900 text-sm">{label}</p>
-          <p className="text-xs text-gray-500">{sublabel}</p>
+          <p className="font-semibold text-foreground text-sm">{label}</p>
+          <p className="text-xs text-muted-foreground">{sublabel}</p>
         </div>
       </div>
       <div className="flex gap-2">
-        <input
+        <Input
           readOnly value={url} aria-label={label}
-          className="flex-1 text-xs bg-white border border-gray-200 rounded-xl px-3 py-2 text-gray-600 min-w-0
-                     focus:border-pink-400 focus:ring-2 focus:ring-pink-100 outline-none transition"
+          className="h-10 flex-1 text-xs bg-background min-w-0"
         />
-        <button
-          onClick={onCopy}
-          className={`shrink-0 px-3 py-2 rounded-xl text-sm font-semibold transition-colors
-                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 ${
-            copied ? 'bg-green-100 text-green-700' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-          }`}
-        >
-          <span aria-live="polite">{copied ? '✓ Copied' : 'Copy'}</span>
-        </button>
+        <Button type="button" variant="secondary" onClick={onCopy} className="shrink-0 h-10">
+          Copy
+        </Button>
       </div>
       <a href={url} target="_blank" rel="noopener noreferrer"
-        className="block text-xs text-pink-600 hover:underline mt-1.5 truncate">
+        className="block text-xs text-primary hover:underline mt-1.5 truncate py-0.5">
         {url}
       </a>
     </div>

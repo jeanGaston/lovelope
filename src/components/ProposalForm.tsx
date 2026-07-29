@@ -2,9 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { themes, type Theme } from '@/lib/themes';
-import Card from '@/components/ui/Card';
-import Field, { inputClasses } from '@/components/ui/Field';
-import { buttonVariants } from '@/components/ui/Button';
+import { Card } from '@/components/ui/card';
+import Field from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export interface SlotData {
   label: string;
@@ -60,9 +65,24 @@ const COLOR_SWATCHES = [
   '#ffffff', '#94a3b8', '#334155', '#0f172a',
 ];
 
-const inputCls = inputClasses;
-const primaryBtn = buttonVariants({ variant: 'primary', size: 'lg', className: 'w-full' });
+const primaryBtn = buttonVariants({ variant: 'default', size: 'lg', className: 'w-full' });
 const secondaryBtn = buttonVariants({ variant: 'secondary', size: 'lg', className: 'flex-1' });
+
+// Sticky on mobile so the wizard's next/back/publish actions never require
+// scrolling past a long form; reverts to normal inline flow at sm+ where
+// there's enough screen to see both the content and the actions at once.
+function StepActions({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        'sticky bottom-3 z-10 flex gap-3 rounded-2xl border border-border bg-background/95 p-3 shadow-lg backdrop-blur',
+        'sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-0',
+        className
+      )}
+      {...props}
+    />
+  );
+}
 
 type GradientStop = 'From' | 'Via' | 'To';
 
@@ -85,24 +105,24 @@ function ColorPicker({
         {(['From', 'Via', 'To'] as GradientStop[]).map((stop) => (
           <button key={stop} type="button" onClick={() => setActiveStop(stop)}
             className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all text-sm font-semibold ${
-              activeStop === stop ? 'border-pink-400 bg-pink-50' : 'border-gray-100 hover:border-gray-300'
+              activeStop === stop ? 'border-primary bg-accent' : 'border-border hover:border-muted-foreground/40'
             }`}
           >
-            <span className="w-5 h-5 rounded-full border border-gray-300 shadow-sm shrink-0"
+            <span className="w-5 h-5 rounded-full border border-border shadow-sm shrink-0"
               style={{ backgroundColor: vals[stop] }} />
-            <span className="text-gray-700 text-xs">{STOP_LABELS[stop]}</span>
-            {activeStop === stop && <span className="ml-auto text-pink-400 text-xs">✓</span>}
+            <span className="text-muted-foreground text-xs">{STOP_LABELS[stop]}</span>
+            {activeStop === stop && <span className="ml-auto text-primary text-xs">✓</span>}
           </button>
         ))}
       </div>
 
-      <div className="grid grid-cols-8 gap-1.5 p-3 bg-gray-50 rounded-xl">
+      <div className="grid grid-cols-6 sm:grid-cols-8 gap-1.5 p-3 bg-secondary rounded-xl">
         {COLOR_SWATCHES.map((color) => (
           <button key={color} type="button" onClick={() => setters[activeStop](color)}
             title={color}
-            className={`w-full aspect-square rounded-lg border-2 transition-all ${
+            className={`w-full aspect-square min-h-8 rounded-lg border-2 transition-all ${
               currentColor.toLowerCase() === color.toLowerCase()
-                ? 'border-gray-900 scale-110 shadow-md'
+                ? 'border-foreground scale-110 shadow-md'
                 : 'border-transparent hover:scale-110 hover:shadow-sm'
             }`}
             style={{ backgroundColor: color }}
@@ -111,17 +131,16 @@ function ColorPicker({
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="w-9 h-9 rounded-xl border-2 border-gray-200 shrink-0"
+        <span className="w-9 h-9 rounded-xl border-2 border-border shrink-0"
           style={{ backgroundColor: currentColor }} />
-        <input
+        <Input
           type="text" value={currentColor}
           onChange={(e) => {
             const v = e.target.value;
             if (/^#[0-9a-fA-F]{0,6}$/.test(v)) setters[activeStop](v);
           }}
           maxLength={7} placeholder="#000000"
-          className="flex-1 px-3 py-2 rounded-xl border border-gray-200 font-mono text-sm
-                     focus:border-pink-400 focus:ring-2 focus:ring-pink-100 outline-none transition"
+          className="h-10 font-mono text-sm"
         />
       </div>
     </div>
@@ -153,11 +172,11 @@ function GifPicker({ value, onChange }: { value: string; onChange: (url: string)
 
   if (value) {
     return (
-      <div className="mt-2 relative rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 max-h-48 flex items-center justify-center">
+      <div className="mt-2 relative rounded-2xl overflow-hidden border border-border bg-secondary max-h-48 flex items-center justify-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={value} alt="Selected GIF" className="max-h-48 object-contain" />
         <button type="button" onClick={() => onChange('')}
-          className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center
+          className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-8 h-8 flex items-center
                      justify-center text-sm font-bold hover:bg-black/80 transition-colors">
           ×
         </button>
@@ -167,11 +186,10 @@ function GifPicker({ value, onChange }: { value: string; onChange: (url: string)
 
   return (
     <div className="space-y-2 mt-2">
-      <input
+      <Input
         type="text" value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search for a GIF…"
-        className={inputCls}
       />
 
       {results.length > 0 && (
@@ -179,7 +197,7 @@ function GifPicker({ value, onChange }: { value: string; onChange: (url: string)
           {results.map((g) => (
             <button key={g.id} type="button" onClick={() => onChange(g.url)}
               className="aspect-video rounded-lg overflow-hidden border-2 border-transparent
-                         hover:border-pink-400 transition-all bg-gray-100">
+                         hover:border-primary transition-all bg-secondary">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={g.preview} alt={g.title} className="w-full h-full object-cover" />
             </button>
@@ -188,14 +206,14 @@ function GifPicker({ value, onChange }: { value: string; onChange: (url: string)
       )}
 
       {searching && (
-        <p className="text-sm text-gray-400 text-center py-2">Searching…</p>
+        <p className="text-sm text-muted-foreground text-center py-2">Searching…</p>
       )}
 
       {searched && !searching && results.length === 0 && (
-        <p className="text-sm text-gray-400 text-center py-2">No results, try another search</p>
+        <p className="text-sm text-muted-foreground text-center py-2">No results, try another search</p>
       )}
 
-      <p className="text-xs text-gray-300 text-center pt-1">Powered by Giphy</p>
+      <p className="text-xs text-muted-foreground/70 text-center pt-1">Powered by Giphy</p>
     </div>
   );
 }
@@ -312,260 +330,240 @@ export default function ProposalForm({
   const detailsOk = senderName.trim() && recipientName.trim() && title.trim() && message.trim();
   const activitiesOk = activities.length >= 2 && activities.every((a) => a.title.trim());
 
-  const steps = ['Details', 'Activities', 'Theme'] as const;
-
   return (
-    <div className="space-y-5">
-      {/* Step tabs */}
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl">
-        {(['details', 'activities', 'theme'] as const).map((s, i) => (
-          <button key={s} type="button" onClick={() => setStep(s)}
-            aria-current={step === s ? 'step' : undefined}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all
-                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-300 ${
-              step === s ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {i + 1}. {steps[i]}
-          </button>
-        ))}
-      </div>
+    <Tabs value={step} onValueChange={(v) => setStep(v as typeof step)} className="space-y-5">
+      <TabsList className="grid w-full grid-cols-3 h-auto bg-secondary p-1 rounded-2xl">
+        <TabsTrigger value="details" className="rounded-xl py-2.5 text-sm font-semibold data-[state=active]:shadow">
+          1. Details
+        </TabsTrigger>
+        <TabsTrigger value="activities" className="rounded-xl py-2.5 text-sm font-semibold data-[state=active]:shadow">
+          2. Activities
+        </TabsTrigger>
+        <TabsTrigger value="theme" className="rounded-xl py-2.5 text-sm font-semibold data-[state=active]:shadow">
+          3. Theme
+        </TabsTrigger>
+      </TabsList>
 
       {/* ── Step 1: Details ── */}
-      {step === 'details' && (
+      <TabsContent value="details" className="mt-0 space-y-4">
         <Card className="space-y-4">
           <Field label="Your first name" htmlFor="senderName">
-            <input id="senderName" type="text" required maxLength={60}
+            <Input id="senderName" type="text" required maxLength={60}
               value={senderName} onChange={(e) => setSenderName(e.target.value)}
               placeholder="Jordan"
-              className={inputCls}
             />
           </Field>
           <Field label="Their first name" htmlFor="recipientName">
-            <input id="recipientName" type="text" required maxLength={60}
+            <Input id="recipientName" type="text" required maxLength={60}
               value={recipientName} onChange={(e) => setRecipientName(e.target.value)}
               placeholder="Alex"
-              className={inputCls}
             />
           </Field>
           <Field label="Proposal title" htmlFor="title">
-            <input id="title" type="text" required maxLength={120}
+            <Input id="title" type="text" required maxLength={120}
               value={title} onChange={(e) => setTitle(e.target.value)}
               placeholder="Want to go on an adventure with me?"
-              className={inputCls}
             />
           </Field>
           <Field label="Personal message" htmlFor="message">
-            <textarea id="message" required maxLength={2000} rows={4}
+            <Textarea id="message" required maxLength={2000} rows={4}
               value={message} onChange={(e) => setMessage(e.target.value)}
               placeholder={`Hey ${recipientName || '…'} !`}
-              className={`${inputCls} resize-none`}
+              className="resize-none"
             />
-            <p className="text-xs text-gray-400 text-right mt-1">{message.length}/2000</p>
+            <p className="text-xs text-muted-foreground text-right mt-1">{message.length}/2000</p>
           </Field>
+        </Card>
+        <StepActions>
           <button type="button" disabled={!detailsOk} onClick={() => setStep('activities')}
             className={primaryBtn}>
             Next: Activities →
           </button>
-        </Card>
-      )}
+        </StepActions>
+      </TabsContent>
 
       {/* ── Step 2: Activities ── */}
-      {step === 'activities' && (
-        <div className="space-y-4">
-          {activities.map((act, ai) => (
-            <Card key={ai} className="p-4 sm:p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-display font-bold text-gray-700 text-sm">Activity {ai + 1}</span>
-                {activities.length > 2 && (
-                  <button type="button" onClick={() => removeActivity(ai)}
-                    className="text-red-400 hover:text-red-600 text-sm transition-colors">
-                    Remove
-                  </button>
-                )}
-              </div>
-
-              <div className="flex gap-3">
-                <div className="relative">
-                  <button type="button"
-                    className="text-3xl w-12 h-12 flex items-center justify-center rounded-xl border border-gray-200 hover:border-pink-300 transition-colors">
-                    {act.emoji}
-                  </button>
-                  <select value={act.emoji} onChange={(e) => updateActivity(ai, { emoji: e.target.value })}
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full">
-                    {EMOJI_PRESETS.map((em) => <option key={em} value={em}>{em}</option>)}
-                  </select>
-                </div>
-                <input type="text" required maxLength={100}
-                  value={act.title} onChange={(e) => updateActivity(ai, { title: e.target.value })}
-                  placeholder="Activity name"
-                  className={`flex-1 ${inputCls}`}
-                />
-              </div>
-
-              <textarea maxLength={300} rows={2}
-                value={act.description}
-                onChange={(e) => updateActivity(ai, { description: e.target.value })}
-                placeholder="Short description (optional)"
-                className={`w-full text-sm resize-none ${inputCls}`}
-              />
-
-              {/* Time slots */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Date & time options
-                  </p>
-                  <button type="button" onClick={() => addSlot(ai)}
-                    className="text-xs text-pink-600 font-semibold hover:underline">
-                    + Add slot
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {act.slots.map((slot, si) => (
-                    <div key={si} className="flex gap-2 items-center">
-                      <div className="flex-1">
-                        <input type="datetime-local" value={slot.startsAt}
-                          onChange={(e) => updateSlot(ai, si, e.target.value)}
-                          className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm
-                                     focus:border-pink-400 focus:ring-2 focus:ring-pink-100 outline-none transition"
-                        />
-                        {slot.label && <p className="text-xs text-gray-400 mt-0.5 ml-1">{slot.label}</p>}
-                      </div>
-                      <button type="button" onClick={() => removeSlot(ai, si)}
-                        className="text-gray-400 hover:text-red-500 transition-colors px-2 text-lg shrink-0">
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Card>
-          ))}
-
-          {activities.length < 5 && (
-            <button type="button" onClick={addActivity}
-              className="w-full py-3.5 border-2 border-dashed border-gray-200 rounded-2xl
-                         text-gray-500 hover:border-pink-300 hover:text-pink-500 font-semibold transition-all text-sm">
-              + Add activity (max 5)
-            </button>
-          )}
-
-          <div className="flex gap-3">
-            <button type="button" onClick={() => setStep('details')} className={secondaryBtn}>
-              ← Back
-            </button>
-            <button type="button" disabled={!activitiesOk} onClick={() => setStep('theme')} className={primaryBtn}>
-              Next: Theme →
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Step 3: Theme + GIF ── */}
-      {step === 'theme' && (
-        <div className="space-y-4">
-          {/* Gradient preview */}
-          <div
-            {...gradientPreview}
-            className={`h-20 rounded-2xl shadow-md transition-all ${gradientPreview.className ?? ''}`}
-            style={gradientPreview.style}
-          />
-
-          <Card className="space-y-5">
-            <h2 className="font-display font-bold text-gray-900">Choose a vibe</h2>
-
-            {/* Presets */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {themeList.map(([key, t]) => (
-                <button key={key} type="button"
-                  onClick={() => { handleThemeChange(key); setUseCustom(false); }}
-                  className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all text-left ${
-                    theme === key && !useCustom
-                      ? 'border-pink-400 bg-pink-50'
-                      : 'border-gray-100 hover:border-gray-300'
-                  }`}
-                >
-                  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${t.gradient} shrink-0`} />
-                  <span className="text-sm font-semibold text-gray-700">{t.emoji} {t.label}</span>
-                  {theme === key && !useCustom && <span className="ml-auto text-pink-500 text-xs">✓</span>}
+      <TabsContent value="activities" className="mt-0 space-y-4">
+        {activities.map((act, ai) => (
+          <Card key={ai} className="p-4 sm:p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-display font-bold text-foreground text-sm">Activity {ai + 1}</span>
+              {activities.length > 2 && (
+                <button type="button" onClick={() => removeActivity(ai)}
+                  className="text-destructive/80 hover:text-destructive text-sm transition-colors py-1 px-1">
+                  Remove
                 </button>
-              ))}
-            </div>
-
-            {/* Custom colors */}
-            <div>
-              <button type="button" onClick={() => setUseCustom((v) => !v)}
-                className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
-                  useCustom ? 'border-pink-400 bg-pink-50' : 'border-gray-100 hover:border-gray-300'
-                }`}
-              >
-                <span className="font-semibold text-gray-700 text-sm">🎨 Custom colors</span>
-                <span className="text-xs text-gray-400">{useCustom ? '▲ Hide' : '▼ Pick colors'}</span>
-              </button>
-
-              {useCustom && (
-                <ColorPicker
-                  gradFrom={gradFrom} gradVia={gradVia} gradTo={gradTo}
-                  setGradFrom={setGradFrom} setGradVia={setGradVia} setGradTo={setGradTo}
-                />
               )}
             </div>
 
-            {/* GIF section */}
-            <div className="border-t border-gray-100 pt-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                🎭 Add a GIF (optional)
-              </label>
-              <GifPicker value={gifUrl} onChange={setGifUrl} />
+            <div className="flex gap-3">
+              <div className="relative">
+                <button type="button"
+                  className="text-3xl w-12 h-12 flex items-center justify-center rounded-xl border border-input hover:border-primary/50 transition-colors">
+                  {act.emoji}
+                </button>
+                <select value={act.emoji} onChange={(e) => updateActivity(ai, { emoji: e.target.value })}
+                  aria-label="Activity emoji"
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full">
+                  {EMOJI_PRESETS.map((em) => <option key={em} value={em}>{em}</option>)}
+                </select>
+              </div>
+              <Input type="text" required maxLength={100}
+                value={act.title} onChange={(e) => updateActivity(ai, { title: e.target.value })}
+                placeholder="Activity name"
+                className="flex-1"
+              />
             </div>
 
-            {/* Evasive No toggle */}
-            <div className="border-t border-gray-100 pt-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-semibold text-gray-700 text-sm">🎪 Make &ldquo;No&rdquo; nearly impossible</p>
-                  <p className="text-xs text-gray-400 mt-0.5">The No button runs away when they try to click it</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setEvasiveNo((v) => !v)}
-                  aria-pressed={evasiveNo}
-                  className={`relative shrink-0 w-12 h-6 rounded-full transition-colors ${
-                    evasiveNo ? 'bg-pink-500' : 'bg-gray-200'
-                  }`}
-                >
-                  <span className={`block w-5 h-5 bg-white rounded-full shadow transition-transform absolute top-0.5 ${
-                    evasiveNo ? 'translate-x-6' : 'translate-x-0.5'
-                  }`} />
+            <Textarea maxLength={300} rows={2}
+              value={act.description}
+              onChange={(e) => updateActivity(ai, { description: e.target.value })}
+              placeholder="Short description (optional)"
+              className="text-sm resize-none"
+            />
+
+            {/* Time slots */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Date & time options
+                </p>
+                <button type="button" onClick={() => addSlot(ai)}
+                  className="text-xs text-primary font-semibold hover:underline py-1">
+                  + Add slot
                 </button>
+              </div>
+              <div className="space-y-2">
+                {act.slots.map((slot, si) => (
+                  <div key={si} className="flex gap-2 items-center">
+                    <div className="flex-1">
+                      <Input type="datetime-local" value={slot.startsAt}
+                        onChange={(e) => updateSlot(ai, si, e.target.value)}
+                        className="h-11 text-sm"
+                      />
+                      {slot.label && <p className="text-xs text-muted-foreground mt-0.5 ml-1">{slot.label}</p>}
+                    </div>
+                    <button type="button" onClick={() => removeSlot(ai, si)}
+                      aria-label="Remove time slot"
+                      className="text-muted-foreground hover:text-destructive transition-colors px-2 h-11 text-lg shrink-0">
+                      ×
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </Card>
+        ))}
 
-          {submitError && (
-            <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-              {submitError}
-            </p>
-          )}
+        {activities.length < 5 && (
+          <button type="button" onClick={addActivity}
+            className="w-full py-3.5 border-2 border-dashed border-input rounded-2xl
+                       text-muted-foreground hover:border-primary/50 hover:text-primary font-semibold transition-all text-sm">
+            + Add activity (max 5)
+          </button>
+        )}
 
-          <div className="flex gap-3">
-            <button type="button" onClick={() => setStep('activities')} className={secondaryBtn}>
-              ← Back
-            </button>
-            {!hideDraft && (
-              <button type="button" disabled={submitting} onClick={() => void handleSubmit(false)}
-                className={secondaryBtn}>
-                Save as draft
+        <StepActions>
+          <button type="button" onClick={() => setStep('details')} className={secondaryBtn}>
+            ← Back
+          </button>
+          <button type="button" disabled={!activitiesOk} onClick={() => setStep('theme')} className={primaryBtn}>
+            Next: Theme →
+          </button>
+        </StepActions>
+      </TabsContent>
+
+      {/* ── Step 3: Theme + GIF ── */}
+      <TabsContent value="theme" className="mt-0 space-y-4">
+        {/* Gradient preview */}
+        <div
+          {...gradientPreview}
+          className={`h-20 rounded-2xl shadow-md transition-all ${gradientPreview.className ?? ''}`}
+          style={gradientPreview.style}
+        />
+
+        <Card className="space-y-5">
+          <h2 className="font-display font-bold text-foreground">Choose a vibe</h2>
+
+          {/* Presets */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {themeList.map(([key, t]) => (
+              <button key={key} type="button"
+                onClick={() => { handleThemeChange(key); setUseCustom(false); }}
+                className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all text-left ${
+                  theme === key && !useCustom
+                    ? 'border-primary bg-accent'
+                    : 'border-border hover:border-muted-foreground/40'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${t.gradient} shrink-0`} />
+                <span className="text-sm font-semibold text-foreground">{t.emoji} {t.label}</span>
+                {theme === key && !useCustom && <span className="ml-auto text-primary text-xs">✓</span>}
               </button>
-            )}
-            <button type="button" disabled={submitting} onClick={() => void handleSubmit(true)}
-              className={primaryBtn}>
-              {submitting ? '…' : publishLabel}
-            </button>
+            ))}
           </div>
-        </div>
-      )}
-    </div>
+
+          {/* Custom colors */}
+          <div>
+            <button type="button" onClick={() => setUseCustom((v) => !v)}
+              className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
+                useCustom ? 'border-primary bg-accent' : 'border-border hover:border-muted-foreground/40'
+              }`}
+            >
+              <span className="font-semibold text-foreground text-sm">🎨 Custom colors</span>
+              <span className="text-xs text-muted-foreground">{useCustom ? '▲ Hide' : '▼ Pick colors'}</span>
+            </button>
+
+            {useCustom && (
+              <ColorPicker
+                gradFrom={gradFrom} gradVia={gradVia} gradTo={gradTo}
+                setGradFrom={setGradFrom} setGradVia={setGradVia} setGradTo={setGradTo}
+              />
+            )}
+          </div>
+
+          {/* GIF section */}
+          <div className="border-t border-border pt-4">
+            <label className="block text-sm font-semibold text-foreground mb-1">
+              🎭 Add a GIF (optional)
+            </label>
+            <GifPicker value={gifUrl} onChange={setGifUrl} />
+          </div>
+
+          {/* Evasive No toggle */}
+          <div className="border-t border-border pt-4">
+            <label className="flex items-center justify-between gap-4 cursor-pointer">
+              <div>
+                <p className="font-semibold text-foreground text-sm">🎪 Make &ldquo;No&rdquo; nearly impossible</p>
+                <p className="text-xs text-muted-foreground mt-0.5">The No button runs away when they try to click it</p>
+              </div>
+              <Switch checked={evasiveNo} onCheckedChange={setEvasiveNo} className="shrink-0" />
+            </label>
+          </div>
+        </Card>
+
+        {submitError && (
+          <p className="text-destructive text-sm bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
+            {submitError}
+          </p>
+        )}
+
+        <StepActions>
+          <button type="button" onClick={() => setStep('activities')} className={secondaryBtn}>
+            ← Back
+          </button>
+          {!hideDraft && (
+            <button type="button" disabled={submitting} onClick={() => void handleSubmit(false)}
+              className={secondaryBtn}>
+              Save as draft
+            </button>
+          )}
+          <button type="button" disabled={submitting} onClick={() => void handleSubmit(true)}
+            className={primaryBtn}>
+            {submitting ? '…' : publishLabel}
+          </button>
+        </StepActions>
+      </TabsContent>
+    </Tabs>
   );
 }
