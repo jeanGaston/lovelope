@@ -1,0 +1,64 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Proposal {
+  id            String           @id @default(cuid())
+  slug          String           @unique
+  manageToken   String           @unique
+  senderName    String
+  recipientName String
+  title         String
+  message       String
+  theme         String           @default("sunset")
+  gradientFrom  String?
+  gradientVia   String?
+  gradientTo    String?
+  gifUrl        String?
+  evasiveNo     Boolean          @default(false)
+  status        String           @default("draft")
+  expiresAt     DateTime?
+  createdAt     DateTime         @default(now())
+  activities    ActivityOption[]
+  response      Response?
+}
+
+model ActivityOption {
+  id          String     @id @default(cuid())
+  proposalId  String
+  proposal    Proposal   @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  emoji       String     @default("🎉")
+  order       Int        @default(0)
+  slots       TimeSlot[]
+  responses   Response[] @relation("SelectedActivity")
+}
+
+model TimeSlot {
+  id               String         @id @default(cuid())
+  activityOptionId String
+  activity         ActivityOption @relation(fields: [activityOptionId], references: [id], onDelete: Cascade)
+  label            String
+  startsAt         String?
+  responses        Response[]     @relation("SelectedSlot")
+}
+
+model Response {
+  id                 String          @id @default(cuid())
+  proposalId         String          @unique
+  proposal           Proposal        @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  selectedActivityId String?
+  selectedActivity   ActivityOption? @relation("SelectedActivity", fields: [selectedActivityId], references: [id])
+  selectedTimeSlotId String?
+  selectedTimeSlot   TimeSlot?       @relation("SelectedSlot", fields: [selectedTimeSlotId], references: [id])
+  answer             String
+  note               String?
+  respondedAt        DateTime        @default(now())
+}

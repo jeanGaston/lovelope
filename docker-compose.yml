@@ -1,0 +1,15 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "file:/app/data/askedout.db"
+      APP_URL: "http://localhost:3000"
+      NODE_ENV: "development"
+      GIPHY_API_KEY: "${GIPHY_API_KEY:-}"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
