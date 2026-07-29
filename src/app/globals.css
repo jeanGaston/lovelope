@@ -6,6 +6,50 @@
   :root {
     --font-inter: 'Inter', system-ui, sans-serif;
     --font-poppins: 'Poppins', system-ui, sans-serif;
+
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    /* Brand pink (Tailwind pink-500) drives every primary action across the app */
+    --primary: 330 81% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 330 81% 96%;
+    --accent-foreground: 330 81% 30%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 330 81% 60%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 330 81% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 330 40% 20%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 330 81% 60%;
   }
 
   html {
@@ -13,7 +57,11 @@
   }
 
   body {
-    @apply antialiased;
+    @apply antialiased bg-background text-foreground;
+  }
+
+  * {
+    @apply border-border;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -33,5 +81,9 @@
   }
   .gradient-text {
     @apply bg-clip-text text-transparent;
+  }
+  /* iOS/Android safe-area padding for the sticky mobile action bar */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
   }
 }
