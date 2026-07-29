@@ -171,12 +171,12 @@ export default function ProposalPageClient({
     }
   }
 
-  const bgClassName = bgStyle.className ? `min-h-screen ${bgStyle.className}` : 'min-h-screen';
+  const bgClassName = bgStyle.className ? `min-h-[100dvh] ${bgStyle.className}` : 'min-h-[100dvh]';
 
   if (isExpired) {
     return (
       <div className={bgClassName} style={bgStyle.style}>
-        <div className="flex items-center justify-center min-h-screen px-4">
+        <div className="flex items-center justify-center min-h-[100dvh] px-4">
           <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 text-center max-w-md w-full">
             <div className="text-5xl mb-4">⏰</div>
             <h1 className="font-display text-2xl font-extrabold text-gray-900 mb-2">
@@ -192,7 +192,7 @@ export default function ProposalPageClient({
   if (keyMissing) {
     return (
       <div className={bgClassName} style={bgStyle.style}>
-        <div className="flex items-center justify-center min-h-screen px-4">
+        <div className="flex items-center justify-center min-h-[100dvh] px-4">
           <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 text-center max-w-md w-full">
             <div className="text-5xl mb-4">🔒</div>
             <h1 className="font-display text-2xl font-extrabold text-gray-900 mb-2">
@@ -210,7 +210,7 @@ export default function ProposalPageClient({
   if (!decrypted) {
     return (
       <div className={bgClassName} style={bgStyle.style}>
-        <div className="flex items-center justify-center min-h-screen px-4">
+        <div className="flex items-center justify-center min-h-[100dvh] px-4">
           <motion.div
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 1.4, repeat: Infinity }}
@@ -233,7 +233,7 @@ export default function ProposalPageClient({
 
     return (
       <div className={bgClassName} style={bgStyle.style}>
-        <div className="flex items-center justify-center min-h-screen px-4">
+        <div className="flex items-center justify-center min-h-[100dvh] px-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -288,7 +288,7 @@ export default function ProposalPageClient({
         <button
           type="button"
           onClick={() => setRevealed(true)}
-          className="flex flex-col items-center justify-center min-h-screen w-full px-4 text-center
+          className="flex flex-col items-center justify-center min-h-[100dvh] w-full px-4 text-center
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
         >
           <motion.div
@@ -315,7 +315,7 @@ export default function ProposalPageClient({
 
   return (
     <div className={bgClassName} style={bgStyle.style}>
-      <div className="max-w-lg mx-auto px-4 py-6 sm:py-10">
+      <div className="max-w-lg mx-auto px-4 pt-6 sm:pt-10 pb-6 sm:pb-10" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 1.5rem)' }}>
         <motion.div variants={container} initial="hidden" animate="show" className="space-y-4 sm:space-y-5">
           {/* Header */}
           <motion.div variants={item}
