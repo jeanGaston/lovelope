@@ -7,7 +7,8 @@
     --font-inter: 'Inter', system-ui, sans-serif;
     --font-poppins: 'Poppins', system-ui, sans-serif;
 
-    --background: 0 0% 100%;
+    /* Matches the app's existing gray-50 page backdrop; cards stay pure white */
+    --background: 210 20% 98%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.9%;

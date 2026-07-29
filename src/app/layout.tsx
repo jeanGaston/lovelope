@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Poppins } from 'next/font/google';
 import Footer from '@/components/Footer';
+import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -35,9 +36,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
-      <body className="font-sans bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+      <body className="font-sans bg-background text-foreground min-h-screen flex flex-col">
         <div className="flex-1">{children}</div>
         <Footer />
+        <Toaster position="bottom-center" />
       </body>
     </html>
   );
