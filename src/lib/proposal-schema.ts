@@ -19,6 +19,7 @@ export const slotSchema = z.object({
 export const activitySchema = z.object({
   title: cipherText(100),
   description: cipherTextOptional(300),
+  location: cipherTextOptional(200),
   emoji: z.string().max(8).optional(),
   slots: z.array(slotSchema).optional(),
 });
@@ -37,7 +38,7 @@ export const proposalBodySchema = z.object({
   gifUrl: cipherTextOptional(500),
   evasiveNo: z.boolean().optional().default(false),
   expiresAt: z.string().datetime().optional(),
-  activities: z.array(activitySchema).min(2).max(5),
+  activities: z.array(activitySchema).min(1).max(5),
 });
 
 export type ProposalBody = z.infer<typeof proposalBodySchema>;

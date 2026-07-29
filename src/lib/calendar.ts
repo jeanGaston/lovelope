@@ -2,7 +2,7 @@ function toGCalDate(d: Date) {
   return d.toISOString().replace(/[-:.]/g, '').slice(0, 15) + 'Z';
 }
 
-export function makeIcs(title: string, startsAt: Date, description: string) {
+export function makeIcs(title: string, startsAt: Date, description: string, location?: string) {
   const start = toGCalDate(startsAt);
   const end = toGCalDate(new Date(startsAt.getTime() + 60 * 60 * 1000));
   return [
@@ -10,12 +10,14 @@ export function makeIcs(title: string, startsAt: Date, description: string) {
     'BEGIN:VEVENT',
     `DTSTART:${start}`, `DTEND:${end}`,
     `SUMMARY:${title}`, `DESCRIPTION:${description}`,
+    ...(location ? [`LOCATION:${location}`] : []),
     'END:VEVENT', 'END:VCALENDAR',
   ].join('\r\n');
 }
 
-export function makeGCalUrl(title: string, startsAt: Date, description: string) {
+export function makeGCalUrl(title: string, startsAt: Date, description: string, location?: string) {
   const start = toGCalDate(startsAt);
   const end = toGCalDate(new Date(startsAt.getTime() + 60 * 60 * 1000));
-  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(description)}`;
+  const locationParam = location ? `&location=${encodeURIComponent(location)}` : '';
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(description)}${locationParam}`;
 }

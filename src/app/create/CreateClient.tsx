@@ -23,6 +23,7 @@ async function encryptPayload(key: string, data: ProposalFormData) {
     data.activities.map(async (a) => ({
       title: await encryptField(key, a.title),
       description: await encryptOptional(key, a.description),
+      location: await encryptOptional(key, a.location),
       emoji: a.emoji,
       slots: await Promise.all(
         a.slots.map(async (s) => ({

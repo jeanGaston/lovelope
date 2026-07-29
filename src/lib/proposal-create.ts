@@ -29,6 +29,7 @@ export async function createProposal(
         create: data.activities.map((a, i) => ({
           title: a.title,
           description: a.description ?? null,
+          location: a.location ?? null,
           emoji: a.emoji ?? '🎉',
           order: i,
           slots: a.slots?.length

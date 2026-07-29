@@ -19,6 +19,7 @@ export interface SlotData {
 export interface ActivityData {
   title: string;
   description: string;
+  location: string;
   emoji: string;
   slots: SlotData[];
 }
@@ -45,7 +46,7 @@ interface Props {
 }
 
 const EMOJI_PRESETS = ['🎉', '🍷', '🎨', '🌅', '🎭', '🎸', '🏄', '🍕', '☕', '🎬', '🎮', '🌙'];
-const BLANK_ACTIVITY: ActivityData = { title: '', description: '', emoji: '🎉', slots: [] };
+const BLANK_ACTIVITY: ActivityData = { title: '', description: '', location: '', emoji: '🎉', slots: [] };
 
 const DEFAULT_COLORS: Record<Theme, [string, string, string]> = {
   sunset:   ['#fb923c', '#ec4899', '#f43f5e'],
@@ -243,7 +244,6 @@ export default function ProposalForm({
   // Activities
   const [activities, setActivities] = useState<ActivityData[]>([
     { ...BLANK_ACTIVITY },
-    { ...BLANK_ACTIVITY },
   ]);
 
   // Theme
@@ -328,7 +328,7 @@ export default function ProposalForm({
     : { className: `bg-gradient-to-br ${themes[theme].gradient}` };
 
   const detailsOk = senderName.trim() && recipientName.trim() && title.trim() && message.trim();
-  const activitiesOk = activities.length >= 2 && activities.every((a) => a.title.trim());
+  const activitiesOk = activities.length >= 1 && activities.every((a) => a.title.trim());
 
   return (
     <Tabs value={step} onValueChange={(v) => setStep(v as typeof step)} className="space-y-5">
@@ -388,7 +388,7 @@ export default function ProposalForm({
           <Card key={ai} className="p-4 sm:p-5 space-y-3">
             <div className="flex items-center justify-between">
               <span className="font-display font-bold text-foreground text-sm">Activity {ai + 1}</span>
-              {activities.length > 2 && (
+              {activities.length > 1 && (
                 <button type="button" onClick={() => removeActivity(ai)}
                   className="text-destructive/80 hover:text-destructive text-sm transition-colors py-1 px-1">
                   Remove
@@ -420,6 +420,13 @@ export default function ProposalForm({
               onChange={(e) => updateActivity(ai, { description: e.target.value })}
               placeholder="Short description (optional)"
               className="text-sm resize-none"
+            />
+
+            <Input type="text" maxLength={200}
+              value={act.location}
+              onChange={(e) => updateActivity(ai, { location: e.target.value })}
+              placeholder="📍 Location (optional)"
+              className="text-sm"
             />
 
             {/* Time slots */}

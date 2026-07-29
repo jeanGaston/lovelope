@@ -21,7 +21,7 @@ interface Props {
 }
 
 interface DecryptedSlot { id: string; label: string; startsAt: string | null }
-interface DecryptedActivity { id: string; emoji: string; title: string; description: string | null; slots: DecryptedSlot[] }
+interface DecryptedActivity { id: string; emoji: string; title: string; description: string | null; location: string | null; slots: DecryptedSlot[] }
 interface Decrypted {
   key: string;
   senderName: string;
@@ -117,9 +117,10 @@ export default function ProposalPageClient({
           decryptOptional(k, existingAnswer ?? undefined),
         ]);
         const activities = await Promise.all(proposal.activities.map(async (a) => {
-          const [aTitle, aDesc] = await Promise.all([
+          const [aTitle, aDesc, aLocation] = await Promise.all([
             decryptField(k, a.title),
             decryptOptional(k, a.description),
+            decryptOptional(k, a.location),
           ]);
           const slots = await Promise.all(a.slots.map(async (s) => {
             const [label, startsAt] = await Promise.all([
@@ -128,7 +129,7 @@ export default function ProposalPageClient({
             ]);
             return { id: s.id, label, startsAt: startsAt ?? null };
           }));
-          return { id: a.id, emoji: a.emoji, title: aTitle, description: aDesc ?? null, slots };
+          return { id: a.id, emoji: a.emoji, title: aTitle, description: aDesc ?? null, location: aLocation ?? null, slots };
         }));
         if (!cancelled) {
           setDecrypted({ key: k, senderName, recipientName, title, message, gifUrl: gifUrl ?? null, activities });
@@ -228,7 +229,11 @@ export default function ProposalPageClient({
     const isMaybe = submittedAnswer === 'maybe';
     const calendarSlot =
       isYes && submitted && selectedSlot?.startsAt
-        ? { startsAt: new Date(selectedSlot.startsAt), title: `${selectedActivity?.title ?? 'Date'} with ${decrypted.recipientName}` }
+        ? {
+            startsAt: new Date(selectedSlot.startsAt),
+            title: `${selectedActivity?.title ?? 'Date'} with ${decrypted.recipientName}`,
+            location: selectedActivity?.location ?? undefined,
+          }
         : null;
 
     return (
@@ -267,6 +272,11 @@ export default function ProposalPageClient({
                     🗓 {formatSlotDate(selectedSlot.startsAt, selectedSlot.label)}
                   </p>
                 )}
+                {selectedActivity.location && (
+                  <p className="text-xs text-orange-500 mt-1">
+                    📍 {selectedActivity.location}
+                  </p>
+                )}
               </div>
             )}
             {calendarSlot && (
@@ -274,6 +284,7 @@ export default function ProposalPageClient({
                 title={calendarSlot.title}
                 startsAt={calendarSlot.startsAt}
                 description={`Arranged via lovelope.app: ${decrypted.title}`}
+                location={calendarSlot.location}
               />
             )}
           </motion.div>
@@ -370,6 +381,9 @@ export default function ProposalPageClient({
                           </h3>
                           {activity.description && (
                             <p className={`text-sm ${theme.textSecondary}`}>{activity.description}</p>
+                          )}
+                          {activity.location && (
+                            <p className={`text-xs ${theme.textSecondary} mt-0.5`}>📍 {activity.location}</p>
                           )}
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 shrink-0 flex items-center justify-center transition-all ${

@@ -35,6 +35,7 @@ model ActivityOption {
   proposal    Proposal   @relation(fields: [proposalId], references: [id], onDelete: Cascade)
   title       String
   description String?
+  location    String?
   emoji       String     @default("🎉")
   order       Int        @default(0)
   slots       TimeSlot[]

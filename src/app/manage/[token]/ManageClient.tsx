@@ -33,7 +33,7 @@ type FullProposal = Proposal & {
 };
 
 interface DecryptedSlot { id: string; label: string; startsAt: string | null }
-interface DecryptedActivity { id: string; emoji: string; title: string; description: string | null; slots: DecryptedSlot[] }
+interface DecryptedActivity { id: string; emoji: string; title: string; description: string | null; location: string | null; slots: DecryptedSlot[] }
 interface DecryptedManage {
   title: string;
   recipientName: string;
@@ -90,9 +90,10 @@ export default function ManageClient({
           decryptField(k, proposal.recipientName),
         ]);
         const activities = await Promise.all(proposal.activities.map(async (a) => {
-          const [aTitle, aDesc] = await Promise.all([
+          const [aTitle, aDesc, aLocation] = await Promise.all([
             decryptField(k, a.title),
             decryptOptional(k, a.description),
+            decryptOptional(k, a.location),
           ]);
           const slots = await Promise.all(a.slots.map(async (s) => {
             const [label, startsAt] = await Promise.all([
@@ -101,7 +102,7 @@ export default function ManageClient({
             ]);
             return { id: s.id, label, startsAt: startsAt ?? null };
           }));
-          return { id: a.id, emoji: a.emoji, title: aTitle, description: aDesc ?? null, slots };
+          return { id: a.id, emoji: a.emoji, title: aTitle, description: aDesc ?? null, location: aLocation ?? null, slots };
         }));
         let response: DecryptedManage['response'] = null;
         if (proposal.response) {
@@ -159,6 +160,7 @@ export default function ManageClient({
       ? {
           startsAt: new Date(selectedSlot.startsAt),
           title: `${selectedActivity?.title ?? 'Date'} with ${decrypted.recipientName}`,
+          location: selectedActivity?.location ?? undefined,
         }
       : null;
 
@@ -237,6 +239,11 @@ export default function ManageClient({
                     🗓 {formatSlotDate(selectedSlot.startsAt, selectedSlot.label)}
                   </p>
                 )}
+                {selectedActivity.location && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    📍 {selectedActivity.location}
+                  </p>
+                )}
               </div>
             )}
             {decrypted.response.note && (
@@ -250,6 +257,7 @@ export default function ManageClient({
                 title={calendarSlot.title}
                 startsAt={calendarSlot.startsAt}
                 description={`Arranged via lovelope.app: ${decrypted.title}`}
+                location={calendarSlot.location}
               />
             )}
           </Card>
@@ -327,6 +335,7 @@ export default function ManageClient({
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-foreground text-sm">{a.title}</p>
                   {a.description && <p className="text-xs text-muted-foreground">{a.description}</p>}
+                  {a.location && <p className="text-xs text-muted-foreground">📍 {a.location}</p>}
                   {a.slots.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {a.slots.map((s) => (
