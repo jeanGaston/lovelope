@@ -28,7 +28,7 @@ RUN npm run build
 
 # ── Stage 3: runner ────────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
-RUN apk add --no-cache libc6-compat openssl
+RUN apk add --no-cache libc6-compat openssl su-exec
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -48,11 +48,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
 
-USER nextjs
+COPY --chmod=755 docker-entrypoint.sh ./docker-entrypoint.sh
 
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Run migrations then start the server
-CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
+# Fix ownership of the bind-mounted /app/data volume, then drop to nextjs
+ENTRYPOINT ["./docker-entrypoint.sh"]
