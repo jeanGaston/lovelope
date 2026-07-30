@@ -21,7 +21,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: "file:/app/data/askedout.db"
+      DATABASE_URL: "file:/app/data/lovelope.db"
       APP_URL: "http://localhost:3000"
       GIPHY_API_KEY: "${GIPHY_API_KEY:-}"
     volumes:
@@ -35,11 +35,11 @@ Then:
 docker compose up -d
 ```
 
-Open **http://localhost:3000**. Your data lives in `./data/askedout.db` on your machine.
+Open **http://localhost:3000**. Your data lives in `./data/lovelope.db` on your machine.
 
 Want GIF search to work? Grab a free key at [developers.giphy.com](https://developers.giphy.com/), export it as `GIPHY_API_KEY` before running `docker compose up` (or drop it in a `.env` file next to `docker-compose.yml`), then restart. Without it, the app still runs fine, GIF search is just disabled.
 
-Pin a specific version instead of always tracking `latest` by using a release tag, e.g. `ghcr.io/jeangaston/lovelope:v0.1.0`.
+Pin a specific version instead of always tracking `latest` by using a release tag, e.g. `ghcr.io/jeangaston/lovelope:v1.0.0`.
 
 ### Build from source
 
@@ -83,7 +83,7 @@ Browsers never send the part after `#` to any server, so that key never reaches 
 
 | Variable | Required | Description |
 |---|---|---|
-| `DATABASE_URL` | ✅ | SQLite file path, default `file:/app/data/askedout.db` works out of the box with Docker |
+| `DATABASE_URL` | ✅ | SQLite file path, default `file:/app/data/lovelope.db` works out of the box with Docker |
 | `APP_URL` | ✅ | Base URL used to build share links, e.g. `http://localhost:3000` |
 | `GIPHY_API_KEY` | optional | Enables GIF search. Free key at [developers.giphy.com](https://developers.giphy.com/), leave blank to disable |
 
