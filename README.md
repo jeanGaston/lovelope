@@ -10,7 +10,40 @@ No accounts, no friction, just a sweet little link. Everything personal is encry
 
 ## Quick start
 
-You need [Docker](https://www.docker.com/) installed. That's it.
+You need [Docker](https://www.docker.com/) installed. That's it — no clone required, the image is published on GHCR.
+
+Create a `docker-compose.yml`:
+
+```yaml
+services:
+  app:
+    image: ghcr.io/jeangaston/lovelope:latest
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "file:/app/data/askedout.db"
+      APP_URL: "http://localhost:3000"
+      GIPHY_API_KEY: "${GIPHY_API_KEY:-}"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+```
+
+Then:
+
+```bash
+docker compose up -d
+```
+
+Open **http://localhost:3000**. Your data lives in `./data/askedout.db` on your machine.
+
+Want GIF search to work? Grab a free key at [developers.giphy.com](https://developers.giphy.com/), export it as `GIPHY_API_KEY` before running `docker compose up` (or drop it in a `.env` file next to `docker-compose.yml`), then restart. Without it, the app still runs fine, GIF search is just disabled.
+
+Pin a specific version instead of always tracking `latest` by using a release tag, e.g. `ghcr.io/jeangaston/lovelope:v0.1.0`.
+
+### Build from source
+
+If you'd rather build the image yourself instead of pulling from GHCR:
 
 ```bash
 git clone https://github.com/jeangaston/lovelope.git && cd lovelope
@@ -18,9 +51,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Open **http://localhost:3000**. Everything (the app and its database) runs in one container; your data lives in `./data/askedout.db` on your machine.
-
-Want GIF search to work? Grab a free key at [developers.giphy.com](https://developers.giphy.com/) and put it in `.env` as `GIPHY_API_KEY`, then restart. Without it, the app still runs fine, GIF search is just disabled.
+This uses the [docker-compose.yml](docker-compose.yml) in the repo, which builds from the local [Dockerfile](Dockerfile) instead of pulling a published image.
 
 ## Features
 
