@@ -40,3 +40,6 @@ next-env.d.ts
 
 # prisma
 prisma/migrations/*/migration.sql
+
+# local Claude Code tooling (skills, agent config) - not part of the app
+/.claude
