@@ -55,22 +55,30 @@ export default function CreateClient() {
 
   async function handleSubmit(data: ProposalFormData, _publish: boolean) {
     setError('');
-    const key = await generateKey();
-    const payload = await encryptPayload(key, data);
-    const res = await fetch('/api/proposals/guest', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
-    if (!res.ok) {
-      setError('Something went wrong. Please check your inputs and try again.');
+    if (typeof crypto === 'undefined' || !crypto.subtle) {
+      setError('Your browser blocked secure encryption here (this page needs HTTPS). Try opening the site directly instead of through an in-app browser.');
       return;
     }
-    setLinks({
-      publicUrl: `${json.publicUrl}#k=${key}`,
-      manageUrl: `${json.manageUrl}#k=${key}`,
-    });
+    try {
+      const key = await generateKey();
+      const payload = await encryptPayload(key, data);
+      const res = await fetch('/api/proposals/guest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setError('Something went wrong. Please check your inputs and try again.');
+        return;
+      }
+      setLinks({
+        publicUrl: `${json.publicUrl}#k=${key}`,
+        manageUrl: `${json.manageUrl}#k=${key}`,
+      });
+    } catch {
+      setError('Something went wrong creating your proposal. Please try again.');
+    }
   }
 
   function copyLink(url: string) {
