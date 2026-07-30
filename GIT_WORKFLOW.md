@@ -46,23 +46,68 @@ Types: `feat`, `fix`, `refactor`, `style`, `docs`, `chore`, `test`.
 - Never force-push `main`. Force-pushing a feature branch you own (after a
   rebase) is fine; never force-push a branch someone else might be using.
 
-## Tags / releases
+## Releases & Docker images
 
-Tag production releases as `v<major>.<minor>.<patch>` (semver) once this
-project has a deployment cadence worth marking. Not required for every merge.
+CI (`.gitea/workflows/docker-publish.yml`) never builds an image from a
+plain commit or merge to `main`/`master` — only from two deliberate
+triggers, each producing tags on both the Gitea registry and GHCR:
 
-## Docker images
+| Trigger         | Produces                | Purpose                            |
+|------------------|--------------------------|-------------------------------------|
+| push to `dev`    | `:dev`                   | test a build before releasing       |
+| push a `v*` tag  | `:latest` + `:vX.Y.Z`    | ship an actual release               |
 
-CI (`.gitea/workflows/docker-publish.yml`) only builds an image on two
-events, not on every commit:
+### Testing a build (`dev`)
 
-- push to `dev` — builds a rolling `:dev` tag, for testing in-progress work
-  before it's ready to release.
-- push a `v*` tag — builds `:latest` plus the version tag, for actual
-  releases.
+`dev` is a disposable pointer, not a branch with history of its own — it
+should always match `main`/`master` exactly. Bring it up to date and push
+whenever you want a fresh test image:
 
-Push to `dev` when you want a throwaway build to test; tag a release on
-`main`/`master` when you want a real one.
+```
+git checkout dev
+git merge main --ff-only
+git push origin dev
+```
+
+If `dev` has drifted and won't fast-forward (e.g. after a rebase, or a
+commit landed only on `dev` by mistake), reset it instead of merging —
+`dev` has no unique history worth preserving:
+
+```
+git checkout dev
+git reset --hard main
+git push origin dev --force-with-lease
+```
+
+### Shipping a release (tag)
+
+1. Bump the version in `package.json` on `main`/`master` (a plain commit —
+   builds nothing on its own):
+   ```
+   # edit package.json: "version": "X.Y.Z"
+   git add package.json
+   git commit -m "chore: bump version to X.Y.Z"
+   git push origin main
+   ```
+2. Tag that commit and push the tag — this is what actually triggers the
+   release build:
+   ```
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
+   ```
+3. Never move or re-push an existing tag once it's out (it may already be
+   pulled/deployed). If you need to fix something after tagging, bump to
+   the next patch version and tag again instead.
+
+Use `v<major>.<minor>.<patch>` (semver) for tags.
+
+### Required repo secrets/variables (Gitea → Settings → Actions)
+
+- `vars.REGISTRY_HOST` — the Gitea instance hostname (no protocol), used to
+  tag/push to the built-in Gitea container registry.
+- `secrets.REGISTRY_TOKEN` — a Gitea PAT with `write:package` scope.
+- `secrets.GHCR_TOKEN` — a GitHub PAT with `write:packages` scope, used to
+  also push to `ghcr.io`.
 
 ## What not to commit
 
