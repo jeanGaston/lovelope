@@ -51,6 +51,19 @@ Types: `feat`, `fix`, `refactor`, `style`, `docs`, `chore`, `test`.
 Tag production releases as `v<major>.<minor>.<patch>` (semver) once this
 project has a deployment cadence worth marking. Not required for every merge.
 
+## Docker images
+
+CI (`.gitea/workflows/docker-publish.yml`) only builds an image on two
+events, not on every commit:
+
+- push to `dev` — builds a rolling `:dev` tag, for testing in-progress work
+  before it's ready to release.
+- push a `v*` tag — builds `:latest` plus the version tag, for actual
+  releases.
+
+Push to `dev` when you want a throwaway build to test; tag a release on
+`main`/`master` when you want a real one.
+
 ## What not to commit
 
 - Anything in `.gitignore` (`.env`, `/data`, `.next`, `node_modules`, prisma
